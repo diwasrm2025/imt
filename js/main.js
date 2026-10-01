@@ -104,7 +104,7 @@ function renderHero() {
         </div>
       </div>
       <div class="pulse-wrap">
-        <img src='./assets/images/'>
+        <img src='./assets/image/info-image.jpeg'>
       </div>
     </div>
   `;
