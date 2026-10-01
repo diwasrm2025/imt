@@ -217,10 +217,10 @@ const SITE_DATA = {
       { label: "Number of Seats", value: "6 per Intake" },
       { label: "Application Process", value: "Online Application" },
       { label: "Session Commencement", value: "November (Each Intake)" },
-      { label: "Application Fee", value: "₹5,000" },
-      { label: "Programme Fee", value: "₹18,65,000 per annum + GST (as applicable)" },
+      { label: "Application Fee", value: "₹10,000" },
+      { label: "Programme Fee", value: "₹17,70,000 per annum + GST (as applicable)" },
       { label: "Stipend — Year 1", value: "₹35,000 / month" },
-      { label: "Stipend — Year 2", value: "₹40,000 / month" },
+      { label: "Stipend — Year 2", value: "₹37,500 / month" },
       { label: "Stipend — Year 3", value: "₹45,000 / month" }
     ],
     includes: [

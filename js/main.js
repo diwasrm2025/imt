@@ -42,7 +42,7 @@ function renderHeader(current) {
           ${d.nav.map(n => `<li><a href="${n.href}" class="${n.href === current ? 'active' : ''}">${n.label}</a></li>`).join('')}
         </ul>
         <div class="nav-cta">
-          <a href="admissions.html#apply" class="btn btn-gold">Apply Now</a>
+          <a href="./assets/pdf/apply-now.pdf" class="btn btn-gold" data-apply-trigger>Apply Now</a>
         </div>
       </nav>
       <button class="nav-toggle" id="nav-toggle" aria-label="Toggle menu" aria-expanded="false">
@@ -100,19 +100,11 @@ function renderHero() {
         <h1>${h.headline}<span class="accent">${h.headlineAccent}</span></h1>
         <p class="lede">${h.subheading}</p>
         <div class="hero-ctas">
-          ${h.ctas.map(c => `<a href="${c.href}" class="btn ${c.primary ? 'btn-gold' : 'btn-outline'}">${c.label}</a>`).join('')}
+          ${h.ctas.map(c => `<a href="${c.href}" class="btn ${c.primary ? 'btn-gold' : 'btn-outline'}" ${c.label === 'Apply Now' ? 'data-apply-trigger' : ''}>${c.label}</a>`).join('')}
         </div>
       </div>
       <div class="pulse-wrap">
-        <div class="pulse-card">
-          <svg viewBox="0 0 420 160">
-            <path class="pulse-line" d="M0,80 L70,80 L95,30 L120,130 L145,55 L165,80 L230,80 L255,45 L280,110 L305,80 L420,80" />
-          </svg>
-          <div class="pulse-caption">
-            <span><b>JRCPTB</b>Curriculum Aligned</span>
-            <span style="text-align:right"><b>3 Yrs</b>Stage 1 Pathway</span>
-          </div>
-        </div>
+        <img src='./assets/images/'>
       </div>
     </div>
   `;
@@ -465,41 +457,7 @@ function renderContact() {
         <p>Have a question about the programme? Send us a message and our admissions office will respond.</p>
       </div>
       <div class="contact-grid">
-        <form class="contact-form" id="enquiry-form" novalidate>
-          <div id="form-fields">
-            <div class="form-row">
-              <div class="field">
-                <label for="f-name">Full Name</label>
-                <input type="text" id="f-name" name="name" required placeholder="Your name" />
-              </div>
-              <div class="field">
-                <label for="f-email">Email</label>
-                <input type="email" id="f-email" name="email" required placeholder="you@example.com" />
-              </div>
-            </div>
-            <div class="form-row">
-              <div class="field">
-                <label for="f-phone">Phone Number</label>
-                <input type="tel" id="f-phone" name="phone" required placeholder="+91" />
-              </div>
-              <div class="field">
-                <label for="f-nationality">Nationality</label>
-                <input type="text" id="f-nationality" name="nationality" placeholder="e.g. Indian" />
-              </div>
-            </div>
-            <div class="field">
-              <label for="f-message">Your Message</label>
-              <textarea id="f-message" name="message" placeholder="Tell us what you'd like to know..."></textarea>
-            </div>
-            <button type="submit" class="btn btn-gold btn-block">Send Enquiry</button>
-            <p class="form-note">We typically respond within 1–2 business days.</p>
-          </div>
-          <div class="form-success" id="form-success">
-            ${icon('check')}
-            <h3>Thank you!</h3>
-            <p>Your enquiry has been received. Our admissions team will be in touch shortly.</p>
-          </div>
-        </form>
+        
         <div class="contact-info">
           <div class="contact-card">
             <div class="icon-badge">${icon('phone')}</div>
@@ -623,6 +581,143 @@ function initStickyApply() {
   });
 }
 
+function initApplicationFlow() {
+  const modal = document.createElement('div');
+  modal.className = 'application-modal';
+  modal.setAttribute('role', 'dialog');
+  modal.setAttribute('aria-modal', 'true');
+  modal.setAttribute('aria-labelledby', 'application-modal-title');
+  modal.hidden = true;
+  document.body.appendChild(modal);
+
+  let activeTrigger = null;
+  let stage = 'download';
+
+  const closeModal = () => {
+    modal.hidden = true;
+    document.body.classList.remove('application-modal-open');
+    if (activeTrigger) activeTrigger.focus();
+  };
+
+  const renderProgress = (currentStep) => `
+    <ol class="application-steps application-steps-${currentStep}" aria-label="Application steps">
+      ${['Download', 'Copy email', 'Complete'].map((label, index) => `
+        <li class="application-step ${index + 1 < currentStep ? 'is-complete' : ''} ${index + 1 === currentStep ? 'is-current' : ''}">
+          <span class="application-step-number">${index + 1 < currentStep ? '✓' : index + 1}</span>
+          <span>${label}</span>
+        </li>
+      `).join('')}
+    </ol>
+  `;
+
+  const showDownloadStage = () => {
+    stage = 'download';
+    modal.innerHTML = `
+      <div class="application-dialog">
+        <button class="application-close" type="button" aria-label="Close">&times;</button>
+        ${renderProgress(1)}
+        <span class="eyebrow">Step 1 of 3</span>
+        <h2 id="application-modal-title">Download the application form</h2>
+        <div class="application-action">
+          <span class="application-action-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3v12m0 0 4-4m-4 4-4-4"/><path d="M4 16v4h16v-4"/></svg>
+          </span>
+          <h3>Get the application PDF</h3>
+          <p>Download the form and complete all required fields before emailing it to admissions.</p>
+          <a class="btn btn-gold application-download" href="./assets/pdf/apply-now.pdf" download>Download application PDF</a>
+        </div>
+      </div>
+    `;
+    modal.querySelector('.application-close').addEventListener('click', closeModal);
+    modal.querySelector('.application-download').addEventListener('click', () => {
+      stage = 'email';
+      showEmailStage();
+    });
+  };
+
+  const showEmailStage = () => {
+    stage = 'email';
+    const email = SITE_DATA.brand.email;
+    modal.innerHTML = `
+      <div class="application-dialog">
+        ${renderProgress(2)}
+        <span class="eyebrow">Step 2 of 3</span>
+        <h2 id="application-modal-title">Copy the admissions email</h2>
+        <div class="application-action">
+          <p>Once the form is complete, send it to this address:</p>
+          <p class="application-email">${email}</p>
+          <button class="btn btn-gold application-copy" type="button">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3"/></svg>
+            Copy email address
+          </button>
+        </div>
+        <p class="application-copy-status" aria-live="polite"></p>
+      </div>
+    `;
+    modal.querySelector('.application-copy').addEventListener('click', async () => {
+      let copied = false;
+      try {
+        if (navigator.clipboard && window.isSecureContext) {
+          await navigator.clipboard.writeText(email);
+          copied = true;
+        }
+      } catch (error) {
+        copied = false;
+      }
+      if (!copied) {
+        const field = document.createElement('textarea');
+        field.value = email;
+        field.setAttribute('readonly', '');
+        field.style.position = 'fixed';
+        field.style.opacity = '0';
+        document.body.appendChild(field);
+        field.select();
+        try { copied = document.execCommand('copy'); } catch (error) { copied = false; }
+        field.remove();
+      }
+      if (copied) showCompletionStage();
+      else modal.querySelector('.application-copy-status').textContent = 'Copy was blocked. Please try again to copy the address.';
+    });
+  };
+
+  const showCompletionStage = () => {
+    stage = 'complete';
+    const email = SITE_DATA.brand.email;
+    modal.innerHTML = `
+      <div class="application-dialog application-dialog-complete">
+        ${renderProgress(3)}
+        <span class="application-success-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m5 12 4 4L19 6"/></svg>
+        </span>
+        <span class="eyebrow">Application steps complete</span>
+        <h2 id="application-modal-title">Thank you for preparing your submission</h2>
+        <p>Your email address has been copied. Attach the completed application PDF and send it to <strong>${email}</strong> to finish your submission.</p>
+        <button class="btn btn-gold application-done" type="button">Done</button>
+      </div>
+    `;
+    modal.querySelector('.application-done').addEventListener('click', closeModal);
+    modal.querySelector('.application-done').focus();
+  };
+
+  document.addEventListener('click', (event) => {
+    const trigger = event.target.closest('[data-apply-trigger]');
+    if (trigger) {
+      event.preventDefault();
+      activeTrigger = trigger;
+      showDownloadStage();
+      modal.hidden = false;
+      document.body.classList.add('application-modal-open');
+      modal.querySelector('.application-download').focus();
+      return;
+    }
+    if (event.target === modal && stage === 'download') closeModal();
+  });
+
+  modal.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && stage === 'download') closeModal();
+  });
+}
+
 function initForm() {
   const form = document.getElementById('enquiry-form');
   if (!form) return;
@@ -657,6 +752,7 @@ function initPageLoader() {
 document.addEventListener('DOMContentLoaded', () => {
   initPageLoader();
   initNavToggle();
+  initApplicationFlow();
   initAccordions();
   initCounters();
   initFacultyCarousel();
